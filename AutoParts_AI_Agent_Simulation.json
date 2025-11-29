@@ -1,0 +1,75 @@
+{
+  "name": "AI Agent Simulation – AutoParts Inc",
+  "nodes": [
+    {
+      "id": "1",
+      "name": "Start",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [250, 300]
+    },
+    {
+      "id": "2",
+      "name": "Quality Inspection Agent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [500, 300],
+      "parameters": {
+        "functionCode": "const defectProbability = Math.random();\n\nreturn [{\n  defectDetected: defectProbability < 0.3,\n  defectScore: defectProbability,\n  message: defectProbability < 0.3 ? 'Defect detected in component batch.' : 'Batch is good.'\n}];"
+      }
+    },
+    {
+      "id": "3",
+      "name": "Predictive Maintenance Agent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [770, 180],
+      "parameters": {
+        "functionCode": "const temp = 60 + Math.random() * 40;\nconst vibration = 0.5 + Math.random() * 2;\n\nconst maintenanceRequired = temp > 80 || vibration > 2;\n\nreturn [{\n  temp,\n  vibration,\n  maintenanceRequired,\n  message: maintenanceRequired ? 'Machine anomaly detected — schedule maintenance.' : 'Machine operating normally.'\n}];"
+      }
+    },
+    {
+      "id": "4",
+      "name": "Workforce Optimization & Notification Agent",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1050, 300],
+      "parameters": {
+        "functionCode": "const defect = items[0].json.defectDetected;\nconst maintenance = items[1] ? items[1].json.maintenanceRequired : false;\n\nlet action = '';\n\nif (defect && maintenance) {\n  action = 'High Priority: Defects found + Machine issue. Notify manager immediately.';\n}\nelse if (defect) {\n  action = 'Defects found. Assign inspection team to check batch.';\n}\nelse if (maintenance) {\n  action = 'Machine anomaly found. Assign technician for predictive maintenance.';\n}\nelse {\n  action = 'All systems normal. No intervention needed.';\n}\n\nreturn [{ action }];"
+      }
+    },
+    {
+      "id": "5",
+      "name": "Production Manager Notification",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [1300, 300],
+      "parameters": {
+        "functionCode": "return [{\n  notification: `AI System Update: ${items[0].json.action}`\n}];"
+      }
+    }
+  ],
+  "connections": {
+    "Start": {
+      "main": [[{ "node": "Quality Inspection Agent", "type": "main", "index": 0 }]]
+    },
+    "Quality Inspection Agent": {
+      "main": [
+        [
+          { "node": "Predictive Maintenance Agent", "type": "main", "index": 0 },
+          { "node": "Workforce Optimization & Notification Agent", "type": "main", "index": 0 }
+        ]
+      ]
+    },
+    "Predictive Maintenance Agent": {
+      "main": [
+        [
+          { "node": "Workforce Optimization & Notification Agent", "type": "main", "index": 1 }
+        ]
+      ]
+    },
+    "Workforce Optimization & Notification Agent": {
+      "main": [[{ "node": "Production Manager Notification", "type": "main", "index": 0 }]]
+    }
+  }
+    }
